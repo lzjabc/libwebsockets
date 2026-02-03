@@ -37,6 +37,12 @@
 #include <mbedtls/aes.h>
 #include <mbedtls/gcm.h>
 #endif
+#if defined(LWS_WITH_OPENHITLS)
+#include <hitls/crypto/crypt_eal_cipher.h>
+#endif
+#if defined(LWS_WITH_OPENHITLS)
+#include <hitls/crypto/crypt_eal_cipher.h>
+#endif
 
 enum enum_aes_modes {
 	LWS_GAESM_CBC,
@@ -91,6 +97,8 @@ struct lws_genaes_ctx {
 #elif defined(LWS_WITH_GNUTLS)
 	gnutls_cipher_hd_t ctx;
 	int gnutls_gcm_initialized;
+#elif defined(LWS_WITH_OPENHITLS)
+	CRYPT_EAL_CipherCtx *ctx;
 #else
 	EVP_CIPHER_CTX *ctx;
 	const EVP_CIPHER *cipher;

@@ -236,7 +236,10 @@ lws_context_init_alpn(struct lws_vhost *vhost)
 				   &vhost->tls.alpn_ctx);
 #endif
 #else
-#if !defined(LWS_WITH_SCHANNEL) && !defined(LWS_WITH_GNUTLS)
+#if defined(LWS_WITH_OPENHITLS)
+	lwsl_err(" HTTP2 / ALPN configured "
+		 "but not supported by OpenHITLS\n");
+#elif !defined(LWS_WITH_SCHANNEL) && !defined(LWS_WITH_GNUTLS)
 	lwsl_err(" HTTP2 / ALPN configured "
 		 "but not supported by OpenSSL 0x%lx\n",
 		 OPENSSL_VERSION_NUMBER);
@@ -288,7 +291,11 @@ lws_tls_server_conn_alpn(struct lws *wsi)
 
 	return lws_role_call_alpn_negotiated(wsi, (const char *)cstr);
 #else
+#if defined(LWS_WITH_OPENHITLS)
+	lwsl_err("%s: OpenHITLS has no ALPN support\n", __func__);
+#else
 	lwsl_err("%s: openssl/gnutls too old\n", __func__);
+#endif
 #endif
 
 	return 0;
