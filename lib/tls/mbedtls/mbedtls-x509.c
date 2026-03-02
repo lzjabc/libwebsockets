@@ -417,6 +417,10 @@ lws_x509_public_to_jwk(struct lws_jwk *jwk, struct lws_x509_cert *x509,
 		mpi[LWS_GENCRYPTO_EC_KEYEL_X] = &ecpctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X);
 		mpi[LWS_GENCRYPTO_EC_KEYEL_D] = &ecpctx->MBEDTLS_PRIVATE(d);
 		mpi[LWS_GENCRYPTO_EC_KEYEL_Y] = &ecpctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y);
+		if (!curves) {
+			lwsl_err("%s: ec curves not allowed\n", __func__);
+			goto bail;
+		}
 
 		if (lws_genec_confirm_curve_allowed_by_tls_id(curves,
 				(int)ecpctx->MBEDTLS_PRIVATE(grp).id, jwk))

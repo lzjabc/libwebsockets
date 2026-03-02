@@ -22,31 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-#if !defined(__LWS_OPENHITLS_PRIVATE_H__)
-#define __LWS_OPENHITLS_PRIVATE_H__
+#include "private-lib-core.h"
+#include "../private-lib-tls.h"
 
-#include <hitls/tls/hitls.h>
-#include <hitls/pki/hitls_pki_x509.h>
+int
+lws_genaes_create(struct lws_genaes_ctx *ctx, enum enum_aes_operation op,
+		  enum enum_aes_modes mode, struct lws_gencrypto_keyelem *el,
+		  enum enum_aes_padding padding, void *engine)
+{
+	lwsl_err("%s: OpenHITLS AES gencrypto not implemented\n", __func__);
+	return -1;
+}
 
-struct lws_tls_openhitls_ctx {
-	int dummy;
-};
+int
+lws_genaes_destroy(struct lws_genaes_ctx *ctx, unsigned char *tag, size_t tlen)
+{
+	return 0;
+}
 
-struct lws_tls_openhitls_bio {
-	int dummy;
-};
-
-struct lws_tls_openhitls_x509 {
-	int dummy;
-};
-
-struct lws_x509_cert {
-	HITLS_X509_Cert *cert;
-};
-
-typedef HITLS_Ctx lws_tls_conn;
-typedef struct lws_tls_openhitls_ctx lws_tls_ctx;
-typedef struct lws_tls_openhitls_bio lws_tls_bio;
-typedef struct lws_tls_openhitls_x509 lws_tls_x509;
-
-#endif
+int
+lws_genaes_crypt(struct lws_genaes_ctx *ctx, const uint8_t *in, size_t len,
+		 uint8_t *out,
+		 uint8_t *iv_or_nonce_ctr_or_data_unit_16,
+		 uint8_t *stream_block_16,
+		 size_t *nc_or_iv_off, int taglen)
+{
+	lwsl_err("%s: OpenHITLS AES gencrypto not implemented\n", __func__);
+	return -1;
+}

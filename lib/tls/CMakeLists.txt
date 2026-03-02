@@ -213,11 +213,15 @@ if (LWS_WITH_SSL)
 	elseif (LWS_WITH_OPENHITLS)
 		list(APPEND SOURCES
 			tls/openhitls/openhitls-tls.c
-			tls/openhitls/openhitls-ssl.c)
+			tls/openhitls/openhitls-ssl.c
+			tls/openhitls/openhitls-x509.c
+			tls/openhitls/lws-genec.c
+			tls/openhitls/lws-genrsa.c
+			tls/openhitls/lws-genaes.c
+			tls/lws-genec-common.c)
 		if (LWS_WITH_GENCRYPTO)
 			list(APPEND SOURCES
 				tls/openhitls/lws-genhash.c)
-			message(WARNING "OpenHITLS backend only supports genhash/genhmac currently; RSA/AES/EC gencrypto is not implemented.")
 		endif()
 	else()
 		list(APPEND SOURCES

@@ -156,34 +156,6 @@ lws_tls_client_vhost_extra_cert_mem(struct lws_vhost *vh, const uint8_t *der,
 }
 
 int
-lws_tls_peer_cert_info(struct lws *wsi, enum lws_tls_cert_info type,
-		       union lws_tls_cert_info_results *buf, size_t len)
-{
-	(void)wsi;
-	(void)type;
-	(void)buf;
-	(void)len;
-
-	openhitls_not_implemented(__func__);
-
-	return -1;
-}
-
-int
-lws_tls_vhost_cert_info(struct lws_vhost *vhost, enum lws_tls_cert_info type,
-			       union lws_tls_cert_info_results *buf, size_t len)
-{
-	(void)vhost;
-	(void)type;
-	(void)buf;
-	(void)len;
-
-	openhitls_not_implemented(__func__);
-
-	return -1;
-}
-
-int
 lws_tls_server_certs_load(struct lws_vhost *vhost, struct lws *wsi,
 			  const char *cert, const char *private_key,
 			  const char *mem_cert, size_t len_mem_cert,
