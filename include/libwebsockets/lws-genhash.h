@@ -37,6 +37,11 @@
 #include <openssl/hmac.h>
 #endif
 
+#if defined(LWS_WITH_OPENHITLS)
+#include <crypt_eal_md.h>
+#include <crypt_eal_mac.h>
+#endif
+
 
 enum lws_genhash_types {
 	LWS_GENHASH_TYPE_UNKNOWN,
@@ -77,6 +82,8 @@ struct lws_genhash_ctx {
 	union {
 		void *hash; /* gnutls_hash_hd_t */
 	} u;
+#elif defined(LWS_WITH_OPENHITLS)
+	CRYPT_EAL_MdCTX *ctx;
 #else
         const EVP_MD *evp_type;
         EVP_MD_CTX *mdctx;
@@ -97,6 +104,8 @@ struct lws_genhmac_ctx {
 	union {
 		void *hash; /* gnutls_hash_hd_t */
 	} u;
+#elif defined(LWS_WITH_OPENHITLS)
+	CRYPT_EAL_MacCtx *ctx;
 #else
 	const EVP_MD *evp_type;
 
