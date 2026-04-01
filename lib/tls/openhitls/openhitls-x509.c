@@ -57,11 +57,10 @@ lws_tls_openhitls_cert_info(HITLS_X509_Cert *x509, enum lws_tls_cert_info type,
 	BSL_TIME bsl_time = {0};
 	uint32_t usage;
 	int32_t ret;
-	buf->ns.len = 0;
-
-	if (!x509) {
+	if (!buf || !x509) {
 		return -1;
 	}
+	buf->ns.len = 0;
 	if (!len) {
 		len = sizeof(buf->ns.name);
 	}
@@ -162,6 +161,7 @@ lws_tls_openhitls_cert_info(HITLS_X509_Cert *x509, enum lws_tls_cert_info type,
 			lwsl_err("%s: HITLS_X509_GET_ENCODELEN failed, ret=0x%x\n", __func__, ret);
 			return -1;
 		}
+		buf->ns.len = (int)encode.dataLen;
 		if (encode.dataLen > len) {
 			lwsl_err("%s: output buffer too small, need=%u, have=%zu\n", __func__, encode.dataLen, len);
 			return -1;
@@ -171,7 +171,6 @@ lws_tls_openhitls_cert_info(HITLS_X509_Cert *x509, enum lws_tls_cert_info type,
 			lwsl_err("%s: HITLS_X509_GET_ENCODE failed, ret=0x%x\n", __func__, ret);
 			return -1;
 		}
-		buf->ns.len = (int)encode.dataLen;
 		memcpy(buf->ns.name, encode.data, encode.dataLen);
 		return 0;
 
@@ -254,9 +253,10 @@ lws_tls_peer_cert_info(struct lws *wsi, enum lws_tls_cert_info type,
 {
 	HITLS_X509_Cert *cert;
 	HITLS_Ctx *ssl;
-	int ret, result = -1;
+	int ret;
 
-	if (!wsi || !wsi->tls.ssl) {
+	wsi = lws_get_network_wsi(wsi);
+	if (!wsi || !wsi->tls.ssl || !buf) {
 		return -1;
 	}
 	ssl = (HITLS_Ctx *)wsi->tls.ssl;
@@ -267,19 +267,18 @@ lws_tls_peer_cert_info(struct lws *wsi, enum lws_tls_cert_info type,
 	}
 	if (type == LWS_TLS_CERT_INFO_VERIFIED) {
 		HITLS_ERROR verify_result = HITLS_X509_V_OK;
-
 		ret = HITLS_GetVerifyResult((const HITLS_Ctx *)ssl, &verify_result);
 		if (ret != HITLS_SUCCESS) {
-			goto bail;
+			HITLS_X509_CertFree(cert);
+			return -1;
 		}
 		buf->verified = verify_result == HITLS_X509_V_OK;
-		result = 0;
-		goto bail;
+		HITLS_X509_CertFree(cert);
+		return 0;
 	}
-	result = lws_tls_openhitls_cert_info(cert, type, buf, len);
-bail:
+	ret = lws_tls_openhitls_cert_info(cert, type, buf, len);
 	HITLS_X509_CertFree(cert);
-	return result;
+	return ret;
 }
 
 int
@@ -293,9 +292,6 @@ lws_tls_vhost_cert_info(struct lws_vhost *vhost, enum lws_tls_cert_info type,
 		return -1;
 	}
 	ctx = vhost->tls.ssl_ctx;
-	if (!ctx) {
-		return -1;
-	}
 	cert = HITLS_CFG_GetCertificate(ctx);
 	if (!cert) {
 		lwsl_debug("%s: no vhost certificate configured\n", __func__);
@@ -321,17 +317,20 @@ lws_x509_parse_from_pem(struct lws_x509_cert *x509, const void *pem, size_t len)
 	int32_t ret;
 	uint8_t *pem_copy = NULL;
 
-	if (len == 0 || ((const char *)pem)[len - 1] != '\0') {
+	if (!x509 || !pem || !len) {
+		return -1;
+	}
+	if (((const char *)pem)[len - 1] != '\0') {
 		pem_copy = lws_malloc(len + 1, __func__);
 		if (!pem_copy)
 			return -1;
 		memcpy(pem_copy, pem, len);
 		pem_copy[len] = '\0';
 		buf.data = pem_copy;
-		buf.dataLen = (uint32_t)len + 1;
+		buf.dataLen = (uint32_t)len;
 	} else {
 		buf.data = (uint8_t *)pem;
-		buf.dataLen = (uint32_t)len;
+		buf.dataLen = (uint32_t)len - 1;
 	}
 
 	ret = HITLS_X509_CertParseBuff(BSL_FORMAT_PEM, &buf, &x509->cert);
@@ -346,7 +345,7 @@ lws_x509_parse_from_pem(struct lws_x509_cert *x509, const void *pem, size_t len)
 void
 lws_x509_destroy(struct lws_x509_cert **x509)
 {
-	if (!*x509) {
+	if (!x509 || !*x509) {
 		return;
 	}
 	if ((*x509)->cert) {
@@ -722,10 +721,10 @@ lws_x509_jwk_privkey_pem(struct lws_context *cx, struct lws_jwk *jwk, void *pem,
 		memcpy(pem_copy, pem, len);
 		pem_copy[len] = '\0';
 		pem_buf.data = pem_copy;
-		pem_buf.dataLen = (uint32_t)len + 1;
+		pem_buf.dataLen = (uint32_t)len;
 	} else {
 		pem_buf.data = (uint8_t *)pem;
-		pem_buf.dataLen = (uint32_t)len;
+		pem_buf.dataLen = (uint32_t)len - 1;
 	}
 
 	if (passphrase) {
